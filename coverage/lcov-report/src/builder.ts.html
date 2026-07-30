@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">93.59% </span>
+                <span class="strong">93.56% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>190/203</span>
+                <span class='fraction'>189/202</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">94.4% </span>
+                <span class="strong">95.03% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>135/143</span>
+                <span class='fraction'>134/141</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">94.92% </span>
+                <span class="strong">94.89% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>187/197</span>
+                <span class='fraction'>186/196</span>
             </div>
         
             
@@ -619,9 +619,7 @@
 <a name='L554'></a><a href='#L554'>554</a>
 <a name='L555'></a><a href='#L555'>555</a>
 <a name='L556'></a><a href='#L556'>556</a>
-<a name='L557'></a><a href='#L557'>557</a>
-<a name='L558'></a><a href='#L558'>558</a>
-<a name='L559'></a><a href='#L559'>559</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L557'></a><a href='#L557'>557</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -815,6 +813,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-yes">20x</span>
@@ -836,9 +835,6 @@
 <span class="cline-any cline-yes">19x</span>
 <span class="cline-any cline-yes">19x</span>
 <span class="cline-any cline-yes">13x</span>
-<span class="cline-any cline-yes">13x</span>
-<span class="cline-any cline-yes">13x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
@@ -1230,7 +1226,7 @@ export class StreamBuilder {
   private _amount?: number | undefined;
   private _ratePerSecond?: number | bigint | undefined;
 &nbsp;
-  private pendingQueue: Array&lt;Record&lt;string, unknown&gt;&gt; = [];
+  private pendingQueue: Set&lt;Record&lt;string, unknown&gt;&gt; = new Set();
   private activeTimers: Set&lt;NodeJS.Timeout&gt; = new Set();
   private isDestroyed = false;
   private _semaphore: Semaphore;
@@ -1364,7 +1360,7 @@ export class StreamBuilder {
     }
 &nbsp;
     // Backpressure: reject if queue is full
-    if (this.pendingQueue.length &gt;= this._maxQueueSize) {
+    if (this.pendingQueue.size &gt;= this._maxQueueSize) {
       throw new Error(
         `StreamBuilder queue is full (${this._maxQueueSize} pending). ` +
         'Retry later or increase maxQueueSize.'
@@ -1372,7 +1368,8 @@ export class StreamBuilder {
     }
 &nbsp;
     const payload = this.build();
-    this.pendingQueue.push(payload as unknown as Record&lt;string, unknown&gt;);
+    const payloadRecord = payload as unknown as Record&lt;string, unknown&gt;;
+    this.pendingQueue.add(payloadRecord);
 &nbsp;
     const maxRetries = options.maxRetries ?? 3;
     const baseRetryDelay = options.retryDelayMs ?? 100;
@@ -1392,11 +1389,8 @@ export class StreamBuilder {
         }
 &nbsp;
         try {
-          const result = await submitFn(payload as unknown as Record&lt;string, unknown&gt;);
-          const index = this.pendingQueue.indexOf(payload as unknown as Record&lt;string, unknown&gt;);
-          <span class="missing-if-branch" title="else path not taken" >E</span>if (index !== -1) {
-            this.pendingQueue.splice(index, 1);
-          }
+          const result = await submitFn(payloadRecord);
+          this.pendingQueue.delete(payloadRecord);
           return result;
         } catch (err) {
           if (signal?.aborted) {
@@ -1448,7 +1442,7 @@ export class StreamBuilder {
 <span class="cstat-no" title="statement not covered" >      clearTimeout(timer);</span>
     }
     this.activeTimers.clear();
-    this.pendingQueue = [];
+    this.pendingQueue.clear();
   }
 &nbsp;
   private static _validateAddress(address: string, field: string): string {
@@ -1744,7 +1738,7 @@ export class ConduitBatcher {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-30T00:47:56.295Z
+                at 2026-07-30T01:21:01.981Z
             </div>
         <script src="../prettify.js"></script>
         <script>
